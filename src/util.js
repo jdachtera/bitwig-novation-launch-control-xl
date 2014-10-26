@@ -1,120 +1,117 @@
-if (!Function.prototype.bind) {
-	Function.prototype.bind = function (oThis) {
-		if (typeof this !== 'function') {
-			// closest thing possible to the ECMAScript 5
-			// internal IsCallable function
-			throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
-		}
+if (!Function.prototype.bind)
+{
+    Function.prototype.bind = function (oThis)
+    {
+        if (typeof this !== 'function')
+        {
+            // closest thing possible to the ECMAScript 5
+            // internal IsCallable function
+            throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+        }
 
-		var aArgs = Array.prototype.slice.call(arguments, 1),
-			fToBind = this,
-			fNOP = function () {
-			},
-			fBound = function () {
-				return fToBind.apply(this instanceof fNOP && oThis
-						? this
-						: oThis,
-					aArgs.concat(Array.prototype.slice.call(arguments)));
-			};
+        var aArgs = Array.prototype.slice.call(arguments, 1),
+            fToBind = this,
+            fNOP = function ()
+            {
+            },
+            fBound = function ()
+            {
+                return fToBind.apply(this instanceof fNOP && oThis
+                        ? this
+                        : oThis,
+                    aArgs.concat(Array.prototype.slice.call(arguments)));
+            };
 
-		fNOP.prototype = this.prototype;
-		fBound.prototype = new fNOP();
+        fNOP.prototype = this.prototype;
+        fBound.prototype = new fNOP();
 
-		return fBound;
-	};
+        return fBound;
+    };
 }
 
 // http://jsperf.com/new-vs-object-create-including-polyfill
-if (typeof Object.create !== 'function') {
-	Object.create = function (o, props) {
-		function F() {
-		}
+if (typeof Object.create !== 'function')
+{
+    Object.create = function (o, props)
+    {
+        function F()
+        {
+        }
 
-		F.prototype = o;
+        F.prototype = o;
 
-		if (typeof(props) === "object") {
-			for (prop in props) {
-				if (props.hasOwnProperty((prop))) {
-					F[prop] = props[prop];
-				}
-			}
-		}
-		return new F();
-	};
+        if (typeof(props) === "object")
+        {
+            for (var prop in props)
+            {
+                if (props.hasOwnProperty(prop))
+                {
+                    F[prop] = props[prop];
+                }
+            }
+        }
+        return new F();
+    };
 }
 
 var util = {};
 
-util.inherits = function (Ctor, superCtor) {
-	Ctor.prototype = Object.create(superCtor.prototype);
-	Ctor.prototype.constructor = Ctor;
+util.inherits = function (Ctor, superCtor)
+{
+    Ctor.prototype = Object.create(superCtor.prototype);
+    Ctor.prototype.constructor = Ctor;
 };
-
-function getClassName(thing) {
-	var typeOfThing = typeof thing;
-	if (typeOfThing === 'object') {
-		typeOfThing = Object.prototype.toString.call(thing);
-		if (typeOfThing === '[object Object]') {
-			if (thing.constructor.name) {
-				return thing.constructor.name;
-			} else if (thing.constructor.toString().charAt(0) === '[') {
-				typeOfThing = typeOfThing.substring(8, typeOfThing.length - 1);
-			} else {
-				typeOfThing = thing.constructor.toString().match(/function\s*(\w+)/);
-				if (typeOfThing) {
-					return typeOfThing[1];
-				} else {
-					return 'Function';
-				}
-			}
-		} else {
-			typeOfThing = typeOfThing.substring(8, typeOfThing.length - 1);
-		}
-	}
-	return typeOfThing.charAt(0).toUpperCase() + typeOfThing.slice(1);
-}
 
 var setTimeout, clearTimeout;
 
-(function () {
-	var ids = {}, current = 0;
+(function ()
+{
+    var ids = {}, current = 0;
 
-	setTimeout = function (callback, ms) {
-		var id = current++;
-		ids[id] = true;
-		host.scheduleTask(function () {
-			if (ids[id]) {
-				callback();
-				delete(ids[id]);
-			}
-		}, [], ms);
-		return id;
-	};
+    setTimeout = function (callback, ms)
+    {
+        var id = current++;
+        ids[id] = true;
+        host.scheduleTask(function ()
+        {
+            if (ids[id])
+            {
+                callback();
+                delete(ids[id]);
+            }
+        }, [], ms);
+        return id;
+    };
 
-	clearTimeout = function (id) {
-		delete(ids[id]);
-	};
+    clearTimeout = function (id)
+    {
+        delete(ids[id]);
+    };
 })();
 
 var console = {};
 
-console._toString = function(o) {
-	switch(o) {
-		case false:
-		case true:
-		case undefined:
-		case null:
-			return o;
-			break;
-		default:
-			return o.toString();
-	}
+console._toString = function (o)
+{
+    switch (o)
+    {
+        case false:
+        case true:
+        case undefined:
+        case null:
+            return o;
+            break;
+        default:
+            return o.toString();
+    }
 };
 
-console.log = function () {
-	println(Array.prototype.slice.call(arguments, 0).map(console._toString).join(', '));
+console.log = function ()
+{
+    println(Array.prototype.slice.call(arguments, 0).map(console._toString).join(', '));
 };
 
-console.error = function () {
-	errorln(Array.prototype.slice.call(arguments, 0).map(console._toString).join(', '));
+console.error = function ()
+{
+    host.errorln(Array.prototype.slice.call(arguments, 0).map(console._toString).join(', '));
 };

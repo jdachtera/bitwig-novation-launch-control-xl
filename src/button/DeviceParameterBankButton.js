@@ -2,19 +2,20 @@
  *
  * @param {String} midiMessage
  * @param {Device} device
- * @param {integer} index
+ * @param {int} index
  * @constructor
  */
 function DeviceParameterBankButton(midiMessage, device, index)
 {
-	Button.call(this, midiMessage);
-	this.device = device;
-	this.index = index;
-	this.connectDevice(device);
-	this.device.addSelectedPageObserver(-1, function(page, pages) {
-		this.set('value', page === this.index);
-	}.bind(this));
-	this.on('down', this.selectPage.bind(this));
+    Button.call(this, midiMessage);
+    this.device = device;
+    this.index = index;
+    this.connectDevice(device);
+    this.device.addSelectedPageObserver(-1, function (page)
+    {
+        this.set('value', page === this.index);
+    }.bind(this));
+    this.on('down', this.selectPage.bind(this));
 }
 
 util.inherits(DeviceParameterBankButton, Button);
@@ -22,7 +23,7 @@ util.inherits(DeviceParameterBankButton, Button);
 /**
  * Selects the page index associated with this button
  */
-DeviceParameterBankButton.prototype.selectPage = function()
+DeviceParameterBankButton.prototype.selectPage = function ()
 {
-	this.device.setParameterPage(this.index);
+    this.device.setParameterPage(this.index);
 };

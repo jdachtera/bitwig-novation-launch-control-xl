@@ -13,28 +13,30 @@ var main;
 
 function init()
 {
-	noteInput = host.getMidiInPort(0).createNoteInput("Launchpad", "80????", "90????");
-	noteInput.setShouldConsumeEvents(false);
+    var noteInput = host.getMidiInPort(0).createNoteInput("Launchpad", "80????", "90????");
+    noteInput.setShouldConsumeEvents(false);
 
-	var port = new MidiPort(host, 0);
+    var port = new MidiPort(host, 0);
 
-	var launchControlXL = new LaunchControlXL();
+    var launchControlXL = new LaunchControlXL();
 
-	main = new ControlGroup([launchControlXL]);
-	main.set('midiPort', port);
+    main = new ControlGroup([launchControlXL]);
+    main.set('midiPort', port);
 
-	port.on('sysex', function(data) {
-		if (data.matchesHexPattern('F0 00 20 29 02 11 77 ?? F7')) {
-			var program = data.hexByteAt(7);
-			launchControlXL.set('active', program === 8);
-		}
-	});
-	
+    port.on('sysex', function (data)
+    {
+        if (data.matchesHexPattern('F0 00 20 29 02 11 77 ?? F7'))
+        {
+            var program = data.hexByteAt(7);
+            launchControlXL.set('active', program === 8);
+        }
+    });
+
 }
 
-
-function exit() {
-	main.onExit();
+function exit()
+{
+    main.onExit();
 }
 
 

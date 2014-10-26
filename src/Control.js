@@ -1,30 +1,36 @@
-function Control(midiMessage) {
-	EventEmitter.call(this);
-	this.midiMessage = midiMessage;
+function Control(midiMessage)
+{
+    EventEmitter.call(this);
+    this.midiMessage = midiMessage;
     this.enabled = true;
-	this.connected = true;
-	this.active = true;
+    this.connected = true;
+    this.active = true;
+    this.midiPort = null;
+    this.enableFeedback = false;
+    this.trackName = '';
+    this.name = '';
+    this.deviceName = '';
 
-	this.statusByte = midiMessage.hexByteAt(0);
-	this.typeByte = midiMessage.hexByteAt(1);
+    this.statusByte = midiMessage.hexByteAt(0);
+    this.typeByte = midiMessage.hexByteAt(1);
 
-	this.sendFeedbackValue = this.sendFeedbackValue.bind(this);
-	this.updateEnabled = this.updateEnabled.bind(this);
-	this.midiPortChanged = this.midiPortChanged.bind(this);
-	this.handleMidi = this.handleMidi.bind(this);
+    this.sendFeedbackValue = this.sendFeedbackValue.bind(this);
+    this.updateEnabled = this.updateEnabled.bind(this);
+    this.midiPortChanged = this.midiPortChanged.bind(this);
+    this.handleMidi = this.handleMidi.bind(this);
 
-	this.on('midiPortChanged', this.midiPortChanged);
+    this.on('midiPortChanged', this.midiPortChanged);
 
-	this.on('nameChanged', this.updateEnabled);
-	this.on('trackNameChanged', this.updateEnabled);
-	this.on('deviceNameChanged', this.updateEnabled);
+    this.on('nameChanged', this.updateEnabled);
+    this.on('trackNameChanged', this.updateEnabled);
+    this.on('deviceNameChanged', this.updateEnabled);
 
-	this.on('connectedChanged', this.updateEnabled);
-	this.on('activeChanged', this.updateEnabled);
+    this.on('connectedChanged', this.updateEnabled);
+    this.on('activeChanged', this.updateEnabled);
 
-	this.on('enabledChanged', this.enabledChanged.bind(this));
+    this.on('enabledChanged', this.enabledChanged.bind(this));
 
-	this.on('enableFeedbackChanged', this.enableFeedbackChanged.bind(this));
+    this.on('enableFeedbackChanged', this.enableFeedbackChanged.bind(this));
 }
 
 Control.NAME_UNASSIGNED = '__unassigned__';
@@ -37,68 +43,76 @@ Control.prototype.falseValue = 0;
 Control.prototype.disabledValue = 0;
 Control.prototype.value = 0;
 
-Control.prototype.enableFeedbackChanged = function()
+Control.prototype.enableFeedbackChanged = function ()
 {
-	if (this.enableFeedback) {
-		this.on('valueChanged', this.sendFeedbackValue);
-	} else {
-		this.off('valueChanged', this.sendFeedbackValue);
-	}
+    if (this.enableFeedback)
+    {
+        this.on('valueChanged', this.sendFeedbackValue);
+    }
+    else
+    {
+        this.off('valueChanged', this.sendFeedbackValue);
+    }
 };
 
 /**
  * @param {Track} track
  */
-Control.prototype.connectTrack = function(track)
+Control.prototype.connectTrack = function (track)
 {
-	track.addNameObserver(20, Control.NAME_UNASSIGNED, this.set.bind(this, 'trackName'));
+    track.addNameObserver(20, Control.NAME_UNASSIGNED, this.set.bind(this, 'trackName'));
 };
 
 /**
  * @param {Device} device
  */
-Control.prototype.connectDevice = function(device)
+Control.prototype.connectDevice = function (device)
 {
-	device.addNameObserver(20, Control.NAME_UNASSIGNED, this.set.bind(this, 'deviceName'));
+    device.addNameObserver(20, Control.NAME_UNASSIGNED, this.set.bind(this, 'deviceName'));
 };
 
-
 /**
- * @param {AutomatableRangedValue} rangedValue
+ * @param {AutomatableRangedValue} parameter
  */
-Control.prototype.connectParameter = function(parameter)
+Control.prototype.connectParameter = function (parameter)
 {
-	parameter.addValueObserver(this.resolution, this.set.bind(this, 'value'));
-	parameter.addNameObserver(20, Control.NAME_UNASSIGNED, this.set.bind(this, 'name'));
-    this.on('enabledChanged', function(active) {
-		parameter.setIndication(active);
+    parameter.addValueObserver(this.resolution, this.set.bind(this, 'value'));
+    parameter.addNameObserver(20, Control.NAME_UNASSIGNED, this.set.bind(this, 'name'));
+    this.on('enabledChanged', function (active)
+    {
+        parameter.setIndication(active);
     }.bind(this));
     return this;
 };
 
-Control.prototype.updateEnabled = function()
+Control.prototype.updateEnabled = function ()
 {
-	this.set('enabled', !!this.connected && !!this.active);
+    this.set('enabled', !!this.connected && !!this.active);
 };
 
-Control.prototype.isAssigned = function()
+Control.prototype.isAssigned = function ()
 {
-	return this.name !== Control.NAME_UNASSIGNED && this.trackName !== Control.NAME_UNASSIGNED && this.deviceName !== Control.NAME_UNASSIGNED
+    return this.name !== Control.NAME_UNASSIGNED && this.trackName !== Control.NAME_UNASSIGNED && this.deviceName !== Control.NAME_UNASSIGNED
 };
 
-Control.prototype.enabledChanged = function()
+Control.prototype.enabledChanged = function ()
 {
 
-	if (this.enabled) {
-		if (this.midiPort) {
-			this.midiPort.on('midi:' + this.midiMessage, this.handleMidi);
-		}
-		this.sendFeedbackValue();
-	} else {
-		if (this.midiPort) {
-			this.midiPort.off('midi:' + this.midiMessage, this.handleMidi);
-		}
-	}
+    if (this.enabled)
+    {
+        if (this.midiPort)
+        {
+            this.midiPort.on('midi:' + this.midiMessage, this.handleMidi);
+        }
+        this.sendFeedbackValue();
+    }
+    else
+    {
+        if (this.midiPort)
+        {
+            this.midiPort.off('midi:' + this.midiMessage, this.handleMidi);
+        }
+    }
 };
 
 /**
@@ -106,59 +120,70 @@ Control.prototype.enabledChanged = function()
  * @param {BooleanValue} booleanValue
  * @returns {Control}
  */
-Control.prototype.connectSwitch = function(booleanValue)
+Control.prototype.connectSwitch = function (booleanValue)
 {
-    booleanValue.addValueObserver(function(value) {
-		this.set('value', value);
-	}.bind(this));
+    booleanValue.addValueObserver(function (value)
+    {
+        this.set('value', value);
+    }.bind(this));
     return this;
 };
 
-Control.prototype.getFeedbackValue = function()
+Control.prototype.getFeedbackValue = function ()
 {
-    if (!this.isAssigned()) {
+    if (!this.isAssigned())
+    {
         return this.disabledValue;
     }
-    if (this.value === true) {
+    if (this.value === true)
+    {
         return this.trueValue;
     }
-    if (this.value === false) {
+    if (this.value === false)
+    {
         return this.falseValue;
     }
     return this.value;
 };
 
-Control.prototype.getRangedValue = function()
+Control.prototype.getRangedValue = function ()
 {
     return this.value;
 };
 
-Control.prototype.sendFeedbackValue = function()
+Control.prototype.sendFeedbackValue = function ()
 {
-	this.emit('midi', this.statusByte, this.typeByte, this.getFeedbackValue());
+    this.emit('midi', this.statusByte, this.typeByte, this.getFeedbackValue());
 };
 
-Control.prototype.midiPortChanged = function(newPort, oldPort)
+Control.prototype.midiPortChanged = function (newPort, oldPort)
 {
-	oldPort && oldPort.off('midi:' + this.midiMessage, this.receiveMidi);
-	this.on('midi', newPort.sendMidi.bind(newPort));
-	this.enabledChanged();
+    if (oldPort)
+    {
+        oldPort.off('midi:' + this.midiMessage, this.handleMidi);
+    }
+    if (newPort)
+    {
+        this.on('midi', newPort.sendMidi.bind(newPort));
+    }
+    this.enabledChanged();
 };
 
-Control.prototype.handleMidi = function(status, data1, data2)
+Control.prototype.handleMidi = function (status, data1, data2)
 {
-	this.emit('trigger', status, data1, data2);
+    this.emit('trigger', status, data1, data2);
 };
 
-Control.prototype.emit = function(name)
+Control.prototype.emit = function (name)
 {
-	if ((name === 'midi' || name === 'sysex') && (!this.enabled)) {
-		return;
-	}
-	EventEmitter.prototype.emit.apply(this, arguments);
+    if ((name === 'midi' || name === 'sysex') && (!this.enabled))
+    {
+        return;
+    }
+    EventEmitter.prototype.emit.apply(this, arguments);
 };
 
-Control.prototype.onExit = function()
+Control.prototype.onExit = function ()
 {
-	this.emit('midi', this.statusByte, this.typeByte, this.disabledValue);
+    this.emit('midi', this.statusByte, this.typeByte, this.disabledValue);
 };
