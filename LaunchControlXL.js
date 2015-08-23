@@ -57,18 +57,23 @@ function LaunchControlXL()
     this.modeMuteButton = this.addControl(new Button(Layout[CHANNEL].navigation.mute)).set('enableFeedback', true)
         .on('tap', this.switchButtonMode.bind(this, 'mute'))
         .on('tap', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'stop'))
-        //.on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'));
+        .on('hold', function() {
+            this.transport.play();
+        }.bind(this));
     this.modeSoloButton = this.addControl(new Button(Layout[CHANNEL].navigation.solo)).set('enableFeedback', true)
         .on('tap', this.switchButtonMode.bind(this, 'solo'))
         .on('tap', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'))
-        //.on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'));
+        .on('hold', function() {
+            this.transport.record();
+        }.bind(this));
     this.modeArmButton = this.addControl(new Button(Layout[CHANNEL].navigation.record).set('enableFeedback', true))
         .on('tap', this.switchButtonMode.bind(this, 'record'))
         .on('tap', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'record'))
-        //.on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'))
         .on('hold', function() {
             this.transport.toggleLauncherOverdub();
         }.bind(this));
+
+    this.mixerComponent.comboButtons.set('mode', 'stop');
 
     this.deviceEncoders = this.addControl(new ControlGroup(Layout[CHANNEL].encoders[2].map(function (message, index)
     {
