@@ -4,9 +4,11 @@ function LaunchControlXL()
 {
     ControlGroup.call(this);
 
-    this.cursorDevice = host.createCursorDevice();
+    this.cursorDevice = host.createEditorCursorDevice();
 
     this.application = host.createApplication();
+
+    this.transport = host.createTransport();
 
     this.mixerComponent = this.addControl(new MixerControl({
         focus: Layout[CHANNEL].buttons[0],
@@ -53,17 +55,20 @@ function LaunchControlXL()
     }.bind(this))));
 
     this.modeMuteButton = this.addControl(new Button(Layout[CHANNEL].navigation.mute)).set('enableFeedback', true)
-        .on('down', this.switchButtonMode.bind(this, 'mute'))
-        .on('down', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'stop'))
-        .on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'));
+        .on('tap', this.switchButtonMode.bind(this, 'mute'))
+        .on('tap', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'stop'))
+        //.on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'));
     this.modeSoloButton = this.addControl(new Button(Layout[CHANNEL].navigation.solo)).set('enableFeedback', true)
-        .on('down', this.switchButtonMode.bind(this, 'solo'))
-        .on('down', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'play'))
-        .on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'));
+        .on('tap', this.switchButtonMode.bind(this, 'solo'))
+        .on('tap', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'))
+        //.on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'));
     this.modeArmButton = this.addControl(new Button(Layout[CHANNEL].navigation.record).set('enableFeedback', true))
-        .on('down', this.switchButtonMode.bind(this, 'record'))
-        .on('down', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'record'))
-        .on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'));
+        .on('tap', this.switchButtonMode.bind(this, 'record'))
+        .on('tap', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'record'))
+        //.on('up', this.mixerComponent.comboButtons.set.bind(this.mixerComponent.comboButtons, 'mode', 'launch'))
+        .on('hold', function() {
+            this.transport.toggleLauncherOverdub();
+        }.bind(this));
 
     this.deviceEncoders = this.addControl(new ControlGroup(Layout[CHANNEL].encoders[2].map(function (message, index)
     {
@@ -72,7 +77,15 @@ function LaunchControlXL()
 
     this.deviceLeds = this.addControl(new ControlGroup(Layout[CHANNEL].leds[2].map(function (message, index)
     {
-        return new DeviceParameterLed(message, Colors.Device.Parameters, Colors.Device.NoDevice, this.cursorDevice, index);
+        return new DeviceParameterLed(message, Colors.Mapping[index], Colors.Device.NoDevice, this.cursorDevice, index);
+    }.bind(this))))
+
+    this.macroLeds = this.addControl(new ControlGroup(Layout[8].leds.map(function (messages, rowIndex)
+    {
+        return new ControlGroup(messages.map(function (message, index)
+        {
+            return (new LED(message,Colors.Mapping[rowIndex], Colors.Mixer.NoTrack)).set('value', true);
+        }.bind(this)));
     }.bind(this))));
 
     this.deviceSelectors = this.addControl(new DeviceSelectorButtons(this.cursorDevice, {
@@ -123,13 +136,21 @@ LaunchControlXL.prototype.toggleEncoderMode = function ()
 
 LaunchControlXL.prototype.switchEncoderMode = function (mode)
 {
-    this._encoderMode = mode;
-    this.mixerComponent.pans.set('active', mode === 'pan');
-    this.panLeds.set('active', mode === 'pan');
 
-    this.deviceLeds.set('active', mode === 'device');
-    this.deviceEncoders.set('active', mode === 'device');
-    this.modeDeviceButton.set('value', mode === 'device' ? Colors.Button.On : Colors.Button.Off);
+    var realMode = (mode === 'pan' ? (this.mixerComponent.sendSelectors.mode === 'macro' ? 'macro' : 'pan') : 'device');
+
+    host.showPopupNotification('Encoder Mode: ' + ({macro: 'Macros', 'pan': 'Sends/Panning', device: 'Sends/Device'})[realMode]);
+
+    this._encoderMode = mode;
+    this.mixerComponent.pans.set('active', realMode === 'pan');
+    this.panLeds.set('active', realMode === 'pan');
+    this.sendLeds.set('active', realMode !== 'macro');
+
+    this.macroLeds.set('active', realMode === 'macro');
+
+    this.deviceLeds.set('active', realMode === 'device');
+    this.deviceEncoders.set('active', realMode === 'device');
+    this.modeDeviceButton.set('value', realMode === 'device' ? Colors.Button.On : Colors.Button.Off);
 };
 
 LaunchControlXL.prototype.switchSelectMode = function (mode)
@@ -142,5 +163,7 @@ LaunchControlXL.prototype.switchSelectMode = function (mode)
     this.mixerComponent.sceneSelectors.set('active', mode === 'track');
     this.mixerComponent.modeButtons.set('active', mode === 'track');
     this.mixerComponent.trackSelectors.set('active', mode === 'track');
+
+    this.switchEncoderMode(this._encoderMode);
 
 };

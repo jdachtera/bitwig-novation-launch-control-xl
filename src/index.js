@@ -19,6 +19,7 @@ load('button/TrackSoloButton.js');
 
 load('encoder/Encoder.js');
 load('encoder/DeviceParameterEncoder.js');
+load('encoder/DeviceMacroEncoder.js');
 load('encoder/TrackPanEncoder.js');
 load('encoder/TrackSendEncoder.js');
 load('encoder/TrackVolumeEncoder.js');

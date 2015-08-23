@@ -65,9 +65,28 @@ function MixerControl(messages, Colors, numberOfScenes)
         return new TrackVolumeEncoder(message, this.trackBank.getTrack(index));
     }.bind(this))));
 
+    var devs = {};
+    this.macroEncoders = this.addControl(new ControlGroup([messages.sends[0], messages.sends[1], messages.pans].map(function(messages, macroIndex) {
+
+        return new ControlGroup(messages.map(function (message, trackIndex)
+        {
+            devs[trackIndex] = devs[trackIndex] || this.trackBank.getTrack(trackIndex).createDeviceSelection("Primary", true);
+            return (new DeviceMacroEncoder(message, devs[trackIndex], macroIndex));
+        }.bind(this)));
+    }.bind(this))));
+
+    this.macroEncoders.set('active', false);
+
     this.trackSelectors = this.addControl(new TrackSelectorButtons(messages.trackSelectors, this.trackBank));
     this.sendSelectors = this.addControl(new SendSelectorButtons(messages.sendSelectors, this.trackBank));
     this.sceneSelectors = this.addControl(new SceneSelectorButtons(messages.sceneSelectors, this.trackBank, messages.focus.length));
+
+    this.sendSelectors.on('modeChanged', function() {
+        console.log(this.sendSelectors.mode);
+        this.sends.set('active', this.sendSelectors.mode === 'send');
+        this.pans.set('active', this.sendSelectors.mode === 'send');
+        this.macroEncoders.set('active', this.sendSelectors.mode === 'macro');
+    }.bind(this));
 }
 
 util.inherits(MixerControl, ControlGroup);

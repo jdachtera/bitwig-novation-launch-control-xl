@@ -25,5 +25,7 @@ Colors = {
         NoDevice: 0,
         BankSelected: 15,
         BankUnselected: 0
-    }
+    },
+
+    Mapping: [15, 47, 127, 60, 16, 28, 13, 10]
 };
