@@ -89,7 +89,7 @@ function LaunchControlXL()
     {
         return new ControlGroup(messages.map(function (message, index)
         {
-            return (new LED(message,Colors.Mapping[rowIndex], Colors.Mixer.NoTrack)).set('value', true);
+            return (new LED(message,Colors.Mapping[rowIndex], Colors.Mixer.NoTrack)).value.setInternal(true);
         }.bind(this)));
     }.bind(this))));
 
@@ -126,11 +126,12 @@ util.inherits(LaunchControlXL, ControlGroup);
 LaunchControlXL.prototype.switchButtonMode = function (mode)
 {
     this.mixerComponent.muteButtons.set('active', mode === 'mute');
-    this.modeMuteButton.set('value', mode === 'mute' ? Colors.Button.On : Colors.Button.Off);
+    this.modeMuteButton.value.setInternal(mode === 'mute' ? Colors.Button.On : Colors.Button.Off);
     this.mixerComponent.soloButtons.set('active', mode === 'solo');
-    this.modeSoloButton.set('value', mode === 'solo' ? Colors.Button.On : Colors.Button.Off);
+    this.modeSoloButton.value.setInternal(mode === 'solo' ? Colors.Button.On : Colors.Button.Off);
     this.mixerComponent.armButtons.set('active', mode === 'record');
-    this.modeArmButton.set('value', mode === 'record' ? Colors.Button.On : Colors.Button.Off);
+    this.modeArmButton.value.setInternal(mode === 'record' ? Colors.Button.On : Colors.Button.Off);
+    this.modeArmButton.value.setInternal(mode === 'record' ? Colors.Button.On : Colors.Button.Off);
 };
 
 LaunchControlXL.prototype.toggleEncoderMode = function ()
@@ -155,12 +156,12 @@ LaunchControlXL.prototype.switchEncoderMode = function (mode)
 
     this.deviceLeds.set('active', realMode === 'device');
     this.deviceEncoders.set('active', realMode === 'device');
-    this.modeDeviceButton.set('value', realMode === 'device' ? Colors.Button.On : Colors.Button.Off);
+    this.modeDeviceButton.value.setInternal(realMode === 'device' ? Colors.Button.On : Colors.Button.Off);
 };
 
 LaunchControlXL.prototype.switchSelectMode = function (mode)
 {
-    this.modeDeviceButton.set('value', mode === 'device' || this._encoderMode === 'device');
+    this.modeDeviceButton.value.setInternal(mode === 'device' || this._encoderMode === 'device');
     this.deviceBankSelectors.set('active', mode === 'device');
     this.mixerComponent.sendSelectors.set('active', mode === 'device');
     this.deviceSelectors.set('active', mode === 'device');

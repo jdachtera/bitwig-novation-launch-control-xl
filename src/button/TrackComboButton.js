@@ -24,7 +24,7 @@ util.inherits(TrackComboButton, TrackFocusButton);
 
 TrackComboButton.prototype.getFeedbackValue = function ()
 {
-    if (this.value)
+    if (this.value.getInternal())
     {
         if (this.isPlaying)
         {

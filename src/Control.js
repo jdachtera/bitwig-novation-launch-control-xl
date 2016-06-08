@@ -10,6 +10,7 @@ function Control(midiMessage)
     this.trackName = '';
     this.name = '';
     this.deviceName = '';
+    this.value = new Value();
 
     this.statusByte = midiMessage.hexByteAt(0);
     this.typeByte = midiMessage.hexByteAt(1);
@@ -41,17 +42,16 @@ Control.prototype.resolution = 128;
 Control.prototype.trueValue = 127;
 Control.prototype.falseValue = 0;
 Control.prototype.disabledValue = 0;
-Control.prototype.value = 0;
 
 Control.prototype.enableFeedbackChanged = function ()
 {
     if (this.enableFeedback)
     {
-        this.on('valueChanged', this.sendFeedbackValue);
+        this.value.on('change', this.sendFeedbackValue);
     }
     else
     {
-        this.off('valueChanged', this.sendFeedbackValue);
+        this.value.off('change', this.sendFeedbackValue);
     }
 };
 
@@ -76,7 +76,7 @@ Control.prototype.connectDevice = function (device)
  */
 Control.prototype.connectParameter = function (parameter)
 {
-    parameter.addValueObserver(this.resolution, this.set.bind(this, 'value'));
+    parameter.addValueObserver(this.resolution, this.value.setInternal);
     parameter.addNameObserver(20, Control.NAME_UNASSIGNED, this.set.bind(this, 'name'));
     this.on('enabledChanged', function (active)
     {
@@ -122,10 +122,7 @@ Control.prototype.enabledChanged = function ()
  */
 Control.prototype.connectSwitch = function (booleanValue)
 {
-    booleanValue.addValueObserver(function (value)
-    {
-        this.set('value', value);
-    }.bind(this));
+    booleanValue.addValueObserver(this.value.setInternal);
     return this;
 };
 
@@ -135,25 +132,31 @@ Control.prototype.getFeedbackValue = function ()
     {
         return this.disabledValue;
     }
-    if (this.value === true)
+    if (this.value.getInternal() === true)
     {
         return this.trueValue;
     }
-    if (this.value === false)
+    if (this.value.getInternal() === false)
     {
         return this.falseValue;
     }
-    return this.value;
+    return this.value.getInternal();
 };
 
 Control.prototype.getRangedValue = function ()
 {
-    return this.value;
+    return this.value.getInternal();
 };
 
 Control.prototype.sendFeedbackValue = function ()
 {
-    this.emit('midi', this.statusByte, this.typeByte, this.getFeedbackValue());
+    try {
+        this.emit('midi', this.statusByte, this.typeByte, this.getFeedbackValue());
+    } catch(e) {
+        //console.log(e);
+        console.log(this.getFeedbackValue());
+    }
+
 };
 
 Control.prototype.midiPortChanged = function (newPort, oldPort)

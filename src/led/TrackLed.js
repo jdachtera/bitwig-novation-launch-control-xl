@@ -9,7 +9,7 @@
 function TrackLed(midiMessage, onColor, offColor, track)
 {
     LED.call(this, midiMessage, onColor, offColor);
-    track.exists().addValueObserver(this.set.bind(this, 'value'));
+    track.exists().addValueObserver(this.value.setInternal);
 }
 
 util.inherits(TrackLed, LED);

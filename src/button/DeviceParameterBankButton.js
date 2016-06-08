@@ -13,7 +13,7 @@ function DeviceParameterBankButton(midiMessage, device, index)
     this.connectDevice(device);
     this.device.addSelectedPageObserver(-1, function (page)
     {
-        this.set('value', page === this.index);
+        this.value.setInternal(page === this.index);
     }.bind(this));
     this.on('down', this.selectPage.bind(this));
 }

@@ -82,7 +82,6 @@ function MixerControl(messages, Colors, numberOfScenes)
     this.sceneSelectors = this.addControl(new SceneSelectorButtons(messages.sceneSelectors, this.trackBank, messages.focus.length));
 
     this.sendSelectors.on('modeChanged', function() {
-        console.log(this.sendSelectors.mode);
         this.sends.set('active', this.sendSelectors.mode === 'send');
         this.pans.set('active', this.sendSelectors.mode === 'send');
         this.macroEncoders.set('active', this.sendSelectors.mode === 'macro');

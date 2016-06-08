@@ -10,8 +10,8 @@ function DeviceMacroEncoder(midiMessage, device, index)
     Encoder.call(this, midiMessage);
     this.connectDevice(device);
     this.connectParameter(device.getMacro(index).getAmount());
-    this.on('valueChanged', function() {
-        device.getMacro(index).getAmount().set(this.value, 128);
+    this.value.on('change', function(value) {
+        device.getMacro(index).getAmount().set(value, 128);
     }.bind(this));
 }
 

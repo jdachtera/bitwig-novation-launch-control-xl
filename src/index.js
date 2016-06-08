@@ -1,5 +1,6 @@
 load('util.js');
 load('EventEmitter.js');
+load('Value.js');
 load('Control.js');
 load('ControlGroup.js');
 load('MidiPort.js');

@@ -127,7 +127,7 @@ Button.prototype.connectParameter = function (parameter)
     {
         this.on('down', function ()
         {
-            parameter.set(this.value === this.trueValue ? this.falseValue : this.trueValue, this.resolution);
+            parameter.set(this.value.getInternal() === this.trueValue ? this.falseValue : this.trueValue, this.resolution);
         }.bind(this));
     }
     return this;
@@ -159,7 +159,7 @@ Button.prototype.connectSwitch = function (booleanValue)
     {
         this.on('down', function ()
         {
-            booleanValue.set(!this.value);
+            booleanValue.set(!this.value.getInternal());
         }.bind(this));
     }
     return this;

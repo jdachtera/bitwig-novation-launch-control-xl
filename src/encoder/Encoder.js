@@ -8,7 +8,7 @@ util.inherits(Encoder, Control);
 
 Encoder.prototype._handleTrigger = function (status, data1, value)
 {
-    this.set('value', value);
+    this.value.setExternal(value);
 };
 
 /**

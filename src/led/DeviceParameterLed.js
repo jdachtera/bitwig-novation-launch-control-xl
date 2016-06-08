@@ -18,5 +18,5 @@ util.inherits(DeviceParameterLed, LED);
 
 DeviceParameterLed.prototype.nameChanged = function ()
 {
-    this.set('value', this.name !== Control.NAME_UNASSIGNED);
+    this.value.setInternal(this.name !== Control.NAME_UNASSIGNED);
 };

@@ -19,12 +19,12 @@ util.inherits(DeviceSelectorButtons, ControlGroup);
 DeviceSelectorButtons.prototype.setCanSelectPrevious = function (value)
 {
 
-    this._previous.set('value', value);
+    this._previous.value.setInternal(value);
 };
 
 DeviceSelectorButtons.prototype.setCanSelectNext = function (value)
 {
-    this._next.set('value', value);
+    this._next.value.setInternal(value);
 };
 
 DeviceSelectorButtons.prototype.next = function ()

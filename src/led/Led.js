@@ -4,7 +4,7 @@ function LED(midiMessage, onColor, offColor)
     this.trueValue = onColor;
     this.falseValue = offColor;
     this.disabledValue = offColor;
-    this.on('valueChanged', this.sendFeedbackValue.bind(this));
+    this.value.on('change', this.sendFeedbackValue.bind(this));
 }
 
 util.inherits(LED, Control);
