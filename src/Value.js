@@ -1,8 +1,10 @@
 function Value()
 {
     EventEmitter.call(this);
-    this.setInternal = this.setInternal.bind(this);
-    this.setExternal = this.setExternal.bind(this);
+
+    this.internalValue = 0;
+    this.externalValue = 0;
+
     this.setMode = this.setMode.bind(this);
     this.setMode('Pickup');
 
@@ -12,72 +14,48 @@ function Value()
     
     Value.modeSetting.addValueObserver(this.setMode);
 }
+
 util.inherits(Value, EventEmitter);
 
-Value.prototype.setInternal = function(value)
-{
-    this.mode.setInternal(value);
-    this.emit('change', this.getInternal());
-    return this;
-};
-Value.prototype.setExternal = function(value)
-{
-    this.setInternal(this.mode.setExternal(value).getInternal());
-    return this;
-};
-Value.prototype.getInternal = function()
-{
-    return this.mode.getInternal();
-};
-Value.prototype.setMode = function(mode)
-{
-    var ctor = (Value.Mode[mode] || Value.Mode.Pickup);
-    if (!this.mode || this.mode.constructor !== ctor) {
-        var newMode = new ctor();
-        if (this.mode) {
-            newMode.setInternal(this.mode.getInternal());
-            newMode.setExternal(this.mode.getExternal());
-        }
-        this.mode = newMode;
-    }
-};
+Value.prototype.max = 127;
 
-Value.Mode = {};
-Value.Mode.Direct = function()
-{
-    this.externalValue = 0;
-    this.internalValue = 0;
-};
-Value.Mode.Direct.prototype.getInternal = function()
+Value.prototype.getInternal = function()
 {
     return this.internalValue;
 };
-Value.Mode.Direct.prototype.getExternal = function()
+Value.prototype.setMode = function(mode)
 {
-    return this.externalValue;
+    var Mode = (Value.Mode[mode] || Value.Mode.Pickup);
+
+    this.setInternal = Mode.setInternal.bind(this);
+    this.setExternal = Mode.setExternal.bind(this);
 };
-Value.Mode.Direct.prototype.setInternal = function(value)
+
+Value.Mode = {};
+Value.Mode.Direct = {};
+
+Value.Mode.Direct.setInternal = function(value)
 {
     this.internalValue = value;
     this.externalValue = value;
+    this.emit('change', this.internalValue);
+
     return this;
 };
-Value.Mode.Direct.prototype.setExternal = function(value)
+Value.Mode.Direct.setExternal = function(value)
 {
     this.externalValue = value;
     this.internalValue = value;
     return this;
 };
-
-Value.Mode.Pickup = function() {};
-util.inherits(Value.Mode.Pickup, Value.Mode.Direct);
-
-Value.Mode.Pickup.prototype.setInternal = function(value)
+Value.Mode.Pickup = {};
+Value.Mode.Pickup.setInternal = function(value)
 {
     this.internalValue = value;
+    this.emit('change', this.internalValue);
     return this;
 };
-Value.Mode.Pickup.prototype.setExternal = function(value)
+Value.Mode.Pickup.setExternal = function(value)
 {
     if (this.externalValue === this.internalValue) {
         this.internalValue = value;
@@ -86,3 +64,48 @@ Value.Mode.Pickup.prototype.setExternal = function(value)
 
     return this;
 };
+
+Value.Mode.Scale = {};
+Value.Mode.Scale.setInternal = function(value)
+{
+    this.internalValue = value;
+    this.emit('change', this.internalValue);
+    return this;
+};
+Value.Mode.Scale.setExternal = function(value)
+{
+    var externalValue = this.externalValue,
+        internalValue = this.internalValue,
+        max = this.max;
+
+    var diff = internalValue - externalValue;
+
+    if (diff < 0) {
+        diff *= -1;
+    }
+
+    if (diff < 2) {
+        internalValue = value;
+    } else if (externalValue) {
+
+
+        var scale = (value > externalValue) ? (max - externalValue) : (externalValue);
+        var moveDiff = value - externalValue;
+        var increment = moveDiff / scale * diff;
+
+        internalValue += increment;
+
+        if (value < 0) {
+            internalValue = 0;
+        } else if (value > max) {
+            internalValue = max;
+        }
+
+    }
+
+    this.internalValue = internalValue;
+    this.externalValue = value;
+
+    return this;
+};
+
