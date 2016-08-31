@@ -3,6 +3,13 @@
 This is a controller script for Bitwig Studio for the Novation LaunchControl XL. It supports all of the 
 features of the original Ableton Live Script plus some additional.
 
+## Installiation
+- Download and extract the ZIP archive.
+- Keep the folder structure as-is.
+- Cut that folder into this location on your system:
+  - Mac & Linux: ~/Documents/Bitwig Studio/Controller Scripts/
+  - Windows: {{your-user-name}}\Documents\Bitwig Studio\ControllerScripts\
+
 ## Navigation
 
 The Arrow buttons can be used to navigate through the application.
