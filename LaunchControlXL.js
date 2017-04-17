@@ -110,7 +110,7 @@ function LaunchControlXL()
         .on('tap', this.toggleEncoderMode.bind(this))
         .on('down', this.switchSelectMode.bind(this, 'device'))
         .on('up', this.switchSelectMode.bind(this, 'track'))
-        .on('doubletap', this.application.toggleDevices.bind(this.application));
+        .on('doubletap', this.toggleDevices.bind(this));
 
     setTimeout(function ()
     {
@@ -122,6 +122,11 @@ function LaunchControlXL()
 }
 
 util.inherits(LaunchControlXL, ControlGroup);
+
+LaunchControlXL.prototype.toggleDevices = function ()
+{
+    this.application.toggleDevices();
+};
 
 LaunchControlXL.prototype.switchButtonMode = function (mode)
 {
